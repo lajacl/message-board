@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: title,
       theme: ThemeData(primarySwatch: Colors.indigo),
-      home: SplashScreen(),
+      home: AuthGate(),
       debugShowCheckedModeBanner: false,
     );
   }
