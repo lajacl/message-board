@@ -37,7 +37,7 @@ class _AuthGateState extends State<AuthGate> {
         if (user == null) {
           return LoginPage();
         } else {
-          return SplashScreen();
+          return HomePage();
         }
       },
     );
