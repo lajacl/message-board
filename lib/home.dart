@@ -1,9 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:message_board/chat.dart';
-import 'package:message_board/profile.dart';
-import 'package:message_board/settings.dart';
 
 // Home Page with list of boards and drawer
 class HomePage extends StatefulWidget {
@@ -55,7 +52,26 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Message Boards')),
+      appBar: AppBar(
+        title: Text('Message Boards'),
+        actions: [IconButton(icon: Icon(Icons.refresh), onPressed: _loadUser)],
+      ),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            UserAccountsDrawerHeader(
+              accountName: Text(_displayName.isEmpty ? 'User' : _displayName),
+              accountEmail: Text(_email),
+              currentAccountPicture: CircleAvatar(
+                child: Text(_displayName.isEmpty ? '?' : _displayName[0]),
+              ),
+            ),
+            ListTile(title: Text('Message Boards'), leading: Icon(Icons.forum)),
+            ListTile(title: Text('Profile'), leading: Icon(Icons.person)),
+            ListTile(title: Text('Settings'), leading: Icon(Icons.settings)),
+          ],
+        ),
+      ),
       body: ListView.builder(
         itemCount: _boards.length,
         itemBuilder: (context, idx) {
