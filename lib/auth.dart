@@ -182,6 +182,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _pw = TextEditingController();
   final _first = TextEditingController();
@@ -199,38 +200,37 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-    final mail = _email.text.trim();
-    final pw = _pw.text.trim();
-    final fn = _first.text.trim();
-    final ln = _last.text.trim();
-    if (mail.isEmpty || pw.isEmpty || fn.isEmpty || ln.isEmpty) {
-      showSnack(context, 'Please fill all fields');
-      return;
-    }
-    setState(() => _loading = true);
-    try {
-      final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: mail,
-        password: pw,
-      );
-      final user = cred.user!;
-      final now = FieldValue.serverTimestamp();
+    if (_formKey.currentState!.validate()) {
+      final mail = _email.text.trim();
+      final pw = _pw.text.trim();
+      final fn = _first.text.trim();
+      final ln = _last.text.trim();
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'firstName': fn,
-        'lastName': ln,
-        'role': _role,
-        'registeredAt': now,
-        'email': mail,
-      });
-      showSnack(context, 'Registered successfully!');
-      Navigator.of(context).pop();
-    } on FirebaseAuthException catch (e) {
-      showSnack(context, e.message ?? 'Registration error');
-    } catch (e) {
-      showSnack(context, 'Error registering');
-    } finally {
-      setState(() => _loading = false);
+      setState(() => _loading = true);
+      try {
+        final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: mail,
+          password: pw,
+        );
+        final user = cred.user!;
+        final now = FieldValue.serverTimestamp();
+
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'firstName': fn,
+          'lastName': ln,
+          'role': _role,
+          'registeredAt': now,
+          'email': mail,
+        });
+        showSnack(context, 'Registered successfully!');
+        Navigator.of(context).pop();
+      } on FirebaseAuthException catch (e) {
+        showSnack(context, e.message ?? 'Registration error');
+      } catch (e) {
+        showSnack(context, 'Error registering');
+      } finally {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -243,45 +243,78 @@ class _RegisterPageState extends State<RegisterPage> {
           constraints: BoxConstraints(maxWidth: 560),
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                TextField(
-                  controller: _first,
-                  decoration: InputDecoration(labelText: 'First Name'),
-                ),
-                SizedBox(height: 8),
-                TextField(
-                  controller: _last,
-                  decoration: InputDecoration(labelText: 'Last Name'),
-                ),
-                SizedBox(height: 8),
-                TextField(
-                  controller: _email,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(labelText: 'Email'),
-                ),
-                SizedBox(height: 8),
-                TextField(
-                  controller: _pw,
-                  obscureText: true,
-                  decoration: InputDecoration(labelText: 'Password (min 6)'),
-                ),
-                SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _role,
-                  items: ['member', 'moderator', 'admin']
-                      .map((r) => DropdownMenuItem(value: r, child: Text(r)))
-                      .toList(),
-                  onChanged: (v) => setState(() => _role = v ?? 'member'),
-                  decoration: InputDecoration(labelText: 'Role'),
-                ),
-                SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _loading ? null : _register,
-                  child: Text(_loading ? 'Registering...' : 'Register'),
-                ),
-              ],
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  TextFormField(
+                    controller: _first,
+                    decoration: InputDecoration(labelText: 'First Name'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Required";
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 8),
+                  TextFormField(
+                    controller: _last,
+                    decoration: InputDecoration(labelText: 'Last Name'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Required";
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 8),
+                  TextFormField(
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(labelText: 'Email'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Required";
+                      }
+                      if (!value.contains(RegExp(r'.+@.+\..+'))) {
+                        return 'Invalid';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 8),
+                  TextFormField(
+                    controller: _pw,
+                    obscureText: true,
+                    decoration: InputDecoration(labelText: 'Password (min 6)'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Required";
+                      }
+                      if (value.trim().length < 6) {
+                        return "Must be at least 6 characters";
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: _role,
+                    items: ['member', 'moderator', 'admin']
+                        .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                        .toList(),
+                    onChanged: (v) => setState(() => _role = v ?? 'member'),
+                    decoration: InputDecoration(labelText: 'Role'),
+                  ),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loading ? null : _register,
+                    child: Text(_loading ? 'Registering...' : 'Register'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
