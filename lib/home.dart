@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:message_board/chat.dart';
 import 'package:message_board/profile.dart';
 import 'package:message_board/settings.dart';
 
@@ -49,6 +50,15 @@ class _HomePageState extends State<HomePage> {
         });
       }
     }
+  }
+
+  void _openBoard(Map<String, dynamic> board) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            ChatPage(boardId: board['id'], boardName: board['name']),
+      ),
+    );
   }
 
   @override
@@ -101,6 +111,7 @@ class _HomePageState extends State<HomePage> {
             leading: CircleAvatar(child: Icon(b['icon'] as IconData)),
             title: Text(b['name']),
             trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () => _openBoard(b),
           );
         },
       ),
