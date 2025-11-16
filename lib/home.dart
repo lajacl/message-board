@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:message_board/profile.dart';
+import 'package:message_board/settings.dart';
 
 // Home Page with list of boards and drawer
 class HomePage extends StatefulWidget {
@@ -52,10 +54,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Message Boards'),
-        actions: [IconButton(icon: Icon(Icons.refresh), onPressed: _loadUser)],
-      ),
+      appBar: AppBar(title: Text('Message Boards')),
       drawer: Drawer(
         child: Column(
           children: [
@@ -66,9 +65,31 @@ class _HomePageState extends State<HomePage> {
                 child: Text(_displayName.isEmpty ? '?' : _displayName[0]),
               ),
             ),
-            ListTile(title: Text('Message Boards'), leading: Icon(Icons.forum)),
-            ListTile(title: Text('Profile'), leading: Icon(Icons.person)),
-            ListTile(title: Text('Settings'), leading: Icon(Icons.settings)),
+            ListTile(
+              title: Text('Message Boards'),
+              leading: Icon(Icons.forum),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            ListTile(
+              title: Text('Profile'),
+              leading: Icon(Icons.person),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => ProfilePage()));
+              },
+            ),
+            ListTile(
+              title: Text('Settings'),
+              leading: Icon(Icons.settings),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => SettingsPage()));
+              },
+            ),
           ],
         ),
       ),
@@ -83,50 +104,6 @@ class _HomePageState extends State<HomePage> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Create new board',
-        onPressed: () {
-          _showCreateBoardDialog(context);
-        },
-        child: Icon(Icons.add),
-      ),
-    );
-  }
-
-  void _showCreateBoardDialog(BuildContext ctx) {
-    final nameCtrl = TextEditingController();
-    showDialog(
-      context: ctx,
-      builder: (dctx) {
-        return AlertDialog(
-          title: Text('Create board'),
-          content: TextField(
-            controller: nameCtrl,
-            decoration: InputDecoration(labelText: 'Board name'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dctx).pop(),
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final name = nameCtrl.text.trim();
-                if (name.isEmpty) return;
-                setState(() {
-                  _boards.add({
-                    'id': name.toLowerCase().replaceAll(' ', '_'),
-                    'name': name,
-                    'icon': Icons.forum,
-                  });
-                });
-                Navigator.of(dctx).pop();
-              },
-              child: Text('Create'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
