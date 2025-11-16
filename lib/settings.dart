@@ -40,6 +40,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => AuthGate()));
   }
 
   @override
@@ -72,10 +75,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _saveDob,
-              child: Text('Save'),
-            ),
+            ElevatedButton(onPressed: _saveDob, child: Text('Save')),
           ],
         ),
       ),
